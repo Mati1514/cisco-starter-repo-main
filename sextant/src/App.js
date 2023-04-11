@@ -1,6 +1,47 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
 
+function PacketLatency() {
+  const [latency, setLatency] = useState(null);
+  const [connectionError, setConnectionError] = useState(false);
+
+  useEffect(() => {
+    const WebSocket = require('websocket').w3cwebsocket;
+    const ws = new WebSocket('ws://localhost:55455');
+
+    ws.onopen = () => {
+      setConnectionError(false);
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setConnectionError(true);
+    };
+
+    ws.onmessage = (message) => {
+      const packetTimestamp = parseInt(message.data, 10);
+      const currentTimestamp = Date.now();
+      const packetLatency = currentTimestamp - packetTimestamp;
+      setLatency(packetLatency);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
+  return (
+    <div>
+      {connectionError ? (
+        <p>Error connecting to the WebSocket server.</p>
+      ) : (
+        <p>Packet latency: {latency === null ? 'Loading...' : `${latency} ms`}</p>
+      )}
+    </div>
+  );
+}
+
+
 function IpAddress({ ipVersion }) {
   const [ipAddress, setIpAddress] = useState('');
 
@@ -59,6 +100,9 @@ function App() {
       </Exhibit>
       <Exhibit title="IPv6 Address">
         <IpAddress ipVersion={6} />
+      </Exhibit>
+      <Exhibit title="Packet Latency">
+        <PacketLatency />
       </Exhibit>
     </div>
   );
