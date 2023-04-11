@@ -1,5 +1,29 @@
-import React from 'react';
 import './App.css';
+import React, { useEffect, useState } from 'react';
+
+function IpAddress({ ipVersion }) {
+  const [ipAddress, setIpAddress] = useState('');
+
+  useEffect(() => {
+    const fetchIpAddress = async () => {
+      try {
+        const response = await fetch(`https://api.ipify.org?format=json&ip_version=${ipVersion}`);
+        const data = await response.json();
+        setIpAddress(data.ip);
+      } catch (error) {
+        console.error('Error fetching IP address:', error);
+      }
+    };
+
+    fetchIpAddress();
+  }, [ipVersion]);
+
+  return (
+    <div>
+      <p>Your public IPv{ipVersion} address: {ipAddress || 'Loading...'}</p>
+    </div>
+  );
+}
 
 function Banner() {
   return (
@@ -30,10 +54,11 @@ function App() {
   return (
     <div className="App">
       <Banner />        
-      <Exhibit title="Example Exhibit">
-        <p>Child component 1</p>
-        <p>Child component 2</p>
-        <p>Child component 3</p>
+      <Exhibit title="IPv4 Address">
+        <IpAddress ipVersion={4} />
+      </Exhibit>
+      <Exhibit title="IPv6 Address">
+        <IpAddress ipVersion={6} />
       </Exhibit>
     </div>
   );
